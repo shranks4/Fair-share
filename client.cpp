@@ -1,6 +1,13 @@
 #include<iostream>
-#include<winsock2.h>
-#include<ws2tcpip.h>
+#include<string>
+#include<cstring>
+#include<stdlib.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<netdb.h>
+#include <unistd.h>
+#include<arpa/inet.h>
 using namespace std;
 
 #define PORT "3490"
@@ -15,12 +22,6 @@ void *get_in_addr(struct sockaddr *sa){
 
 int main(int argc, char *argv[]){
 
-    WSADATA wsaData;
-    int wsaResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-    if(wsaResult != 0) {
-        cerr << "WSAStartup failed: " << wsaResult << endl;
-        return 1;
-    }
 
     int sockfd, numbytes;
     char buf[MAXDATASIZE];
@@ -54,7 +55,7 @@ int main(int argc, char *argv[]){
 
         if(connect(sockfd, p->ai_addr, p->ai_addrlen)==-1){
             cout<<"Connection error"<<endl;
-            closesocket(sockfd);
+            close(sockfd);
             continue;
         }
         break;
@@ -80,7 +81,7 @@ int main(int argc, char *argv[]){
     
     cout<<"Client received"<<buf<<endl;
     
-    closesocket(sockfd);
+    close(sockfd);
 
     return 0;
 }
