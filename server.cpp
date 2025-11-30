@@ -60,7 +60,7 @@ int main(){
         }
         if(bind(sockfd, p->ai_addr, p->ai_addrlen) == -1){
             close(sockfd);
-            perror("server: bin");
+            perror("server: bind");
             continue;
         }
         break;
