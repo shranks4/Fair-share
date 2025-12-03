@@ -27,9 +27,10 @@ int main(int argc, char *argv[]){
     char buf[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;
     int rv;
+    int n;
     char s[INET6_ADDRSTRLEN];
     
-    if(argc != 2){
+    if(argc != 3){
         cerr<<"Usage: client <hostname/IP>"<<endl;
         return 1;
     }
@@ -70,16 +71,17 @@ int main(int argc, char *argv[]){
     cout<<"client connected to "<<s<<endl;
 
     freeaddrinfo(servinfo);
-    
+
+    buf[numbytes] = '\0';
+    send(sockfd,argv[2],strlen(argv[2]),0);
+
     numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0);
+    buf[numbytes] = '\0';
     if(numbytes==-1){
         cerr<<"recv"<<endl;
         exit(1);
     }
-
-    buf[numbytes] = '\0';
-    
-    cout<<"Client received"<<buf<<endl;
+    cout<<"Client received: "<<buf<<endl;
     
     close(sockfd);
 

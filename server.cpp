@@ -37,7 +37,7 @@ int main(){
     int yes=1;
     char s[INET6_ADDRSTRLEN];
     int rv;
-
+    char buf[100];
     memset(&hints,0,sizeof(hints));
     hints.ai_family=AF_INET;
     hints.ai_socktype=SOCK_STREAM;
@@ -94,14 +94,18 @@ int main(){
         }
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
         cout<<"server: got connection from "<<s<<endl;
+       
+        
 
-        if(!fork()){
-            close(sockfd);
-            if(send(new_fd, "hello, world!", 13, 0) == -1)
-                perror("send");
-            close(new_fd);
-            exit(0);
+        int bytes = recv(new_fd, buf, 99, 0);
+        if(bytes > 0){
+            buf[bytes] = '\0';
+            cout << "Client: " << buf << endl;
         }
+
+        const char *msg="hi from server";
+        send(new_fd, msg, strlen(msg), 0);
+
         close(new_fd);
     }
     return 0;
