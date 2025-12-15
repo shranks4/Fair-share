@@ -13,6 +13,7 @@ using namespace std;
 
 #define PORT "3490"
 #define BACKLOG 10
+#define SIZE 1024
 
 void sigchld_handler(int s){
     (void)s;
@@ -27,8 +28,26 @@ void *get_in_addr(struct sockaddr *sa){
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(){
+void write_file(int new_fd){
+    int n;
+    FILE *fp;
+    char *filename = "recv.txt";
+    char buffer[SIZE];
 
+    fp=fopen(filename, "w");
+    if(fp == NULL){
+        perror("File open error");
+        return;
+    }
+    while((n = recv(new_fd, buffer, SIZE, 0)) > 0){
+        fwrite(buffer, sizeof(char), n, fp);
+    }
+    fclose(fp);
+
+    return;
+}
+
+int main(){
     int sockfd, new_fd;
     struct addrinfo hints,*servinfo,*p;
     struct sockaddr_storage their_addr;
@@ -38,6 +57,7 @@ int main(){
     char s[INET6_ADDRSTRLEN];
     int rv;
     char buf[100];
+
     memset(&hints,0,sizeof(hints));
     hints.ai_family=AF_INET;
     hints.ai_socktype=SOCK_STREAM;
@@ -94,18 +114,18 @@ int main(){
         }
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
         cout<<"server: got connection from "<<s<<endl;
-       
-        
 
-        int bytes = recv(new_fd, buf, 99, 0);
-        if(bytes > 0){
-            buf[bytes] = '\0';
-            cout << "Client: " << buf << endl;
-        }
+        // int bytes = recv(new_fd, buf, 99, 0);
+        // if(bytes > 0){
+        //     buf[bytes] = '\0';
+        //     cout << "Client: " << buf << endl;
+        // }
 
-        const char *msg="hi from server";
-        send(new_fd, msg, strlen(msg), 0);
+        // const char *msg="hi from server";
+        // send(new_fd, msg, strlen(msg), 0);
 
+        write_file(new_fd);
+        cout<<"data written successfully"<<endl;
         close(new_fd);
     }
     return 0;

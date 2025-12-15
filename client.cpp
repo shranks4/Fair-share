@@ -12,6 +12,7 @@ using namespace std;
 
 #define PORT "3490"
 #define MAXDATASIZE 100
+#define SIZE 1024
 
 void *get_in_addr(struct sockaddr *sa){
     if(sa->sa_family == AF_INET){
@@ -20,8 +21,20 @@ void *get_in_addr(struct sockaddr *sa){
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(int argc, char *argv[]){
+void send_file(FILE *fp, int sockfd){
+    int n;
+    char data[SIZE]={0};
 
+    while(fgets(data, SIZE, fp) != NULL){
+        if(send(sockfd, data, strlen(data), 0)==-1){
+            cerr<<"Error in reading file"<<endl;
+            exit(1);
+        }
+        memset(&data, 0, SIZE);
+    }
+}
+
+int main(int argc, char *argv[]){
 
     int sockfd, numbytes;
     char buf[MAXDATASIZE];
@@ -29,9 +42,12 @@ int main(int argc, char *argv[]){
     int rv;
     int n;
     char s[INET6_ADDRSTRLEN];
+
+    FILE *fp;
+    char *filename="send.txt";
     
-    if(argc != 3){
-        cerr<<"Usage: client <hostname/IP>"<<endl;
+    if(argc != 2){
+        cerr<<"Usage: client <hostname/IP/msg>"<<endl;
         return 1;
     }
 
@@ -72,16 +88,25 @@ int main(int argc, char *argv[]){
 
     freeaddrinfo(servinfo);
 
-    buf[numbytes] = '\0';
-    send(sockfd,argv[2],strlen(argv[2]),0);
-
-    numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0);
-    buf[numbytes] = '\0';
-    if(numbytes==-1){
-        cerr<<"recv"<<endl;
-        exit(1);
+    fp=fopen(filename,"r");
+    if(fp==NULL){
+        cerr<<"Error sending data."<<endl;
+        return 1;
     }
-    cout<<"Client received: "<<buf<<endl;
+
+    send_file(fp,sockfd);
+    cout<<"file data send successfully"<<endl;
+    fclose(fp);
+    // buf[numbytes] = '\0';
+    // send(sockfd,argv[2],strlen(argv[2]),0);
+
+    // numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0);
+    // buf[numbytes] = '\0';
+    // if(numbytes==-1){
+    //     cerr<<"recv"<<endl;
+    //     exit(1);
+    // }
+    // cout<<"Client received: "<<buf<<endl;
     
     close(sockfd);
 
